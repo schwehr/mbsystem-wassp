@@ -1,5 +1,5 @@
-
 /* standard include files */
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -14,13 +14,13 @@
 int main (int argc, char **argv)
 {
 	extern char *optarg;
-	int	errflg = 0;
-	int	c;
-	int	help = 0;
-	int	flag = 0;
+	// int	errflg = 0;
+	// int	c;
+	// int	help = 0;
+	// int	flag = 0;
 
 	/* MBIO status variables */
-	int	status = MB_SUCCESS;
+	// int	status = MB_SUCCESS;
 	int	verbose = 0;
 	int	error = MB_ERROR_NO_ERROR;
 	char	*message;
@@ -36,7 +36,7 @@ int main (int argc, char **argv)
 	double	etime_d;
 	double	speedmin;
 	double	timegap;
-	mb_path	file;
+	mb_path	file="stdio";
 	int	pings_get = 1;
 	int	beams_bath_alloc = 0;
 	int	beams_amp_alloc = 0;
@@ -68,95 +68,107 @@ int main (int argc, char **argv)
 	char	comment[MB_COMMENT_MAXLINE];
          
 	/* get current default values */
-	status = mb_defaults(verbose,&format,&pings_get,&lonflip,bounds,
-		btime_i,etime_i,&speedmin,&timegap);
+        if (MB_SUCCESS != mb_defaults(verbose,&format,&pings_get,&lonflip,bounds,
+                                      btime_i,etime_i,&speedmin,&timegap)) {
+          mb_error(verbose,error,&message);
+          fprintf(stderr,"\nMBIO Error returned from function <mb_defaults>:\n%s\n",message);
+          fprintf(stderr,"\nProgram Terminated\n");
+          exit(error);  // Or we could use EXIT_FAILURE
+        }
 
-        strcpy (file, "stdin");
+        // strcpy (file, "stdin");
 
 	/* process argument list */
+        {
+          int c=0, flag=0, errflg=0;
 	  while ((c = getopt(argc, argv, "F:f:I:i:")) != -1)
 	  switch (c)
-		{
-		case 'F':
-		case 'f':
-			sscanf (optarg,"%d", &format);
-			flag++;
-			break;
-		case 'I':
-		case 'i':
-			sscanf (optarg,"%s", file);
-			flag++;
-			break;
-		case '?':
-			errflg++;
-		}
+            {
+            case 'F':
+            case 'f': // fall through
+              sscanf (optarg,"%d", &format);
+              flag++;
+              break;
+            case 'I':
+            case 'i': // fall through
+              sscanf (optarg,"%s", file);
+              flag++;
+              break;
+            case '?':
+              errflg++;
+            default:
+              fprintf(stderr, "ERROR: unknown getopt case: %c\n", c);
+            }
+          // TODO: Do something if errflg is true.
+        }
 
 	/* initialize reading the swath file */
-	if ((status = mb_read_init(
+	if (mb_read_init(
 		verbose,file,format,pings_get,lonflip,bounds,
 		btime_i,etime_i,speedmin,timegap,
 		&mbio_ptr,&btime_d,&etime_d,
 		&beams_bath_alloc,
 		&beams_amp_alloc,
 		&pixels_ss_alloc,
-		&error)) != MB_SUCCESS)
-		{
-		mb_error(verbose,error,&message);
-		fprintf(stderr,"\nMBIO Error returned from function <mb_read_init>:\n%s\n",message);
-		fprintf(stderr,"\nSwath File <%s> not initialized for reading\n",file);
-		fprintf(stderr,"\nProgram Terminated\n");
-		exit(error);
-		}
+		&error) != MB_SUCCESS)
+          {
+            mb_error(verbose,error,&message);
+            fprintf(stderr,"\nMBIO Error returned from function <mb_read_init>:\n%s\n",message);
+            fprintf(stderr,"\nSwath File <%s> not initialized for reading\n",file);
+            fprintf(stderr,"\nProgram Terminated\n");
+            exit(error);
+          }
 
 	/* allocate memory for data arrays */
-        status = mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_BATHYMETRY,
+        // TODO: These should all trigger exit if they fail to register.
+
+        mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_BATHYMETRY,
                                         sizeof(char), (void **)&beamflag, &error);
         if (error == MB_ERROR_NO_ERROR)
-            status = mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_BATHYMETRY,
-                                        sizeof(double), (void **)&bath, &error);
+            mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_BATHYMETRY,
+                              sizeof(double), (void **)&bath, &error);
         if (error == MB_ERROR_NO_ERROR)
-            status = mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_AMPLITUDE,
-                                        sizeof(double), (void **)&amp, &error);
+            mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_AMPLITUDE,
+                              sizeof(double), (void **)&amp, &error);
         if (error == MB_ERROR_NO_ERROR)
-            status = mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_BATHYMETRY,
-                                        sizeof(double), (void **)&bathlon, &error);
+            mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_BATHYMETRY,
+                              sizeof(double), (void **)&bathlon, &error);
         if (error == MB_ERROR_NO_ERROR)
-            status = mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_BATHYMETRY,
-                                        sizeof(double), (void **)&bathlat, &error);
+            mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_BATHYMETRY,
+                              sizeof(double), (void **)&bathlat, &error);
         if (error == MB_ERROR_NO_ERROR)
-            status = mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_SIDESCAN,
-                                        sizeof(double), (void **)&ss, &error);
+            mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_SIDESCAN,
+                              sizeof(double), (void **)&ss, &error);
         if (error == MB_ERROR_NO_ERROR)
-            status = mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_SIDESCAN,
-                                        sizeof(double), (void **)&sslon, &error);
+            mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_SIDESCAN,
+                              sizeof(double), (void **)&sslon, &error);
         if (error == MB_ERROR_NO_ERROR)
-            status = mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_SIDESCAN,
-                                        sizeof(double), (void **)&sslat, &error);
+            mb_register_array(verbose, mbio_ptr, MB_MEM_TYPE_SIDESCAN,
+                              sizeof(double), (void **)&sslat, &error);
 
 	/* read and process data */
-	while (error <= MB_ERROR_NO_ERROR)
-		{
-		/* read a ping of data */
-		status = mb_read(verbose, mbio_ptr, &kind, &pings, 
-				time_i, &time_d, 
-				&navlon, &navlat, 
-				&speed, &heading, 
-				&distance, &altitude, &sonardepth, 
-				&beams_bath, &beams_amp, &pixels_ss, 
-				beamflag, bath, amp, 
-				bathlon, bathlat, 
-				ss, sslon, sslat, 
-				comment, &error);
+        // Errors less than 0 are not fatal.
+	while (error <= MB_ERROR_NO_ERROR) {
+          /* read a ping of data */
+          /* status = */
+          mb_read(verbose, mbio_ptr, &kind, &pings, 
+                  time_i, &time_d, 
+                                 &navlon, &navlat, 
+                                 &speed, &heading, 
+                                 &distance, &altitude, &sonardepth, 
+                                 &beams_bath, &beams_amp, &pixels_ss, 
+                                 beamflag, bath, amp, 
+                                 bathlon, bathlat, 
+                                 ss, sslon, sslat, 
+                           comment, &error);
                 
-                fprintf(stdout, "%f %f %f\n",time_d,navlon,navlat);
-                }
+          fprintf(stdout, "%f %f %f\n",time_d,navlon,navlat);
+        }
 
-	/* close the swath file */
-	status = mb_close(verbose, &mbio_ptr, &error);
+	/* status = */ mb_close(verbose, &mbio_ptr, &error);
+        /* status = */ mb_memory_list(verbose,&error);
 
-        
-	/* check memory */
-	status = mb_memory_list(verbose,&error);
+        return EXIT_SUCCESS;
 }
 
                 

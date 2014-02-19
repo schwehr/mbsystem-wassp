@@ -13,11 +13,11 @@
 
 int main (int argc, char **argv)
 {
-	extern char *optarg;
-	int	errflg = 0;
-	int	c;
-	int	help = 0;
-	int	flag = 0;
+  // extern char *optarg;
+  // int	errflg = 0;
+  // int	c;
+  // int	help = 0;
+  // int	flag = 0;
 
 	/* MBIO status variables */
 	int	status = MB_SUCCESS;
@@ -27,12 +27,12 @@ int main (int argc, char **argv)
 
 	/* MBIO read control parameters */
 	int	read_datalist = MB_NO;
-	mb_path	read_file;
+	mb_path	read_file="stdin";
 	void	*datalist;
 	int	look_processed = MB_DATALIST_LOOK_UNSET;
 	double	file_weight;
 	int	format;
-	int	pings;
+	// int	pings;
 	int	lonflip;
 	double	bounds[4];
 	int	btime_i[7];
@@ -57,7 +57,7 @@ int main (int argc, char **argv)
 	void	*imbio_ptr = NULL;
 	void	*ombio_ptr = NULL;
 	void	*store_ptr = NULL;
-	int	kind;
+	// int	kind;
 	int	time_i[7];
 	double	time_d;
 	double	navlon;
@@ -80,35 +80,45 @@ int main (int argc, char **argv)
 	double	*ssalongtrack = NULL;
 	char	comment[MB_COMMENT_MAXLINE];
 	
-	int	done;
+	// int	done;
 	int	read_data;
          
 	/* get current default values */
 	status = mb_defaults(verbose,&format,&pings_get,&lonflip,bounds,
 		btime_i,etime_i,&speedmin,&timegap);
 
-        strcpy (read_file, "stdin");
+        // strcpy (read_file, "stdin");
 
 	/* process argument list */
+        {
+          extern char *optarg;
+          int	errflg = 0;
+          int	c;
+          // int	help = 0;
+          int	flag = 0;
+
 	  while ((c = getopt(argc, argv, "F:f:I:i:")) != -1)
-	  switch (c)
-		{
-		case 'F':
-		case 'f':
-			sscanf (optarg,"%d", &format);
-			flag++;
-			break;
-		case 'I':
-		case 'i':
-			sscanf (optarg,"%s", read_file);
-			flag++;
-			break;
-		case '?':
-			errflg++;
-		}
+	  switch (c) {
+            case 'F':
+            case 'f':
+              sscanf (optarg,"%d", &format);
+              flag++;
+              break;
+            case 'I':
+            case 'i':
+              sscanf (optarg,"%s", read_file);
+              flag++;
+              break;
+            case '?':
+              errflg++;
+            default:
+              fprintf(stderr, "ERROR: unknown getopt case: %c\n", c);
+            }
+          // TODO: Do something if errflg is true.
+        }
 
 	/* get format if required */
-	if (format == 0)
+	if (!format)
 		mb_get_format(verbose,read_file,NULL,&format,&error);
 
 	/* determine whether to read one file or a list of files */
@@ -116,7 +126,7 @@ int main (int argc, char **argv)
 		read_datalist = MB_YES;
 	
 	/* open file list */
-	if (read_datalist == MB_YES)
+	if (read_datalist)
 	    {
 	    if ((status = mb_datalist_open(verbose,&datalist,
 					    read_file,look_processed,&error)) != MB_SUCCESS)
@@ -142,10 +152,10 @@ int main (int argc, char **argv)
 	    }
 
 	/* loop over all files to be read */
-	while (read_data == MB_YES)
+	while (read_data/* == MB_YES*/)
 		{
 		/* initialize reading the swath file */
-		if ((status = mb_read_init(
+                  if ((/* status = */ mb_read_init(
 			verbose,ifile,format,pings_get,lonflip,bounds,
 			btime_i,etime_i,speedmin,timegap,
 			&imbio_ptr,&btime_d,&etime_d,
@@ -164,7 +174,7 @@ int main (int argc, char **argv)
 		/* initialize writing the swath file */
 		oformat = format;
 		sprintf(ofile,"%s.mb%d",ifile,oformat);
-		if ((status = mb_write_init(
+		if ((/* status = */ mb_write_init(
 			verbose,ofile,oformat,&ombio_ptr,
 			&obeams_bath,&obeams_amp,&opixels_ss,&error)) != MB_SUCCESS)
 			{
@@ -176,34 +186,35 @@ int main (int argc, char **argv)
 			}
 	
 		/* allocate memory for data arrays */
-		status = mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_BATHYMETRY,
+		/* status = */ mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_BATHYMETRY,
 						sizeof(char), (void **)&beamflag, &error);
 		if (error == MB_ERROR_NO_ERROR)
-		    status = mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_BATHYMETRY,
+		    /* status = */ mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_BATHYMETRY,
 						sizeof(double), (void **)&bath, &error);
 		if (error == MB_ERROR_NO_ERROR)
-		    status = mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_AMPLITUDE,
+		    /* status = */ mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_AMPLITUDE,
 						sizeof(double), (void **)&amp, &error);
 		if (error == MB_ERROR_NO_ERROR)
-		    status = mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_BATHYMETRY,
+		    /* status = */ mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_BATHYMETRY,
 						sizeof(double), (void **)&bathacrosstrack, &error);
 		if (error == MB_ERROR_NO_ERROR)
-		    status = mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_BATHYMETRY,
+		    /* status = */ mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_BATHYMETRY,
 						sizeof(double), (void **)&bathalongtrack, &error);
 		if (error == MB_ERROR_NO_ERROR)
-		    status = mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_SIDESCAN,
+		    /* status = */ mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_SIDESCAN,
 						sizeof(double), (void **)&ss, &error);
 		if (error == MB_ERROR_NO_ERROR)
-		    status = mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_SIDESCAN,
+		    /* status = */ mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_SIDESCAN,
 						sizeof(double), (void **)&ssalongtrack, &error);
 		if (error == MB_ERROR_NO_ERROR)
-		    status = mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_SIDESCAN,
+		    /* status = */ mb_register_array(verbose, imbio_ptr, MB_MEM_TYPE_SIDESCAN,
 						sizeof(double), (void **)&ssacrosstrack, &error);
 	
 		/* read and process data */
 		while (error <= MB_ERROR_NO_ERROR)
-			{
-			status = mb_get_all(verbose,imbio_ptr,&store_ptr,&kind,
+                  {
+                    int kind;
+                    status = mb_get_all(verbose,imbio_ptr,&store_ptr,&kind,
 					time_i,&time_d,&navlon,&navlat,
 					&speed,&heading,
 					&distance,&altitude,&sonardepth,
@@ -216,24 +227,26 @@ int main (int argc, char **argv)
 			fprintf(stdout,"kind:%d error:%d status:%d\n",kind,error,status);
 
 			if (status == MB_SUCCESS)
-			status = mb_put_all(verbose,ombio_ptr,
-					store_ptr,MB_NO,kind,
-					time_i,time_d,
-					navlon,navlat,speed,heading,
-					beams_bath,beams_amp,pixels_ss,
-					beamflag,bath,amp,bathacrosstrack,bathalongtrack,
-					ss,ssacrosstrack,ssalongtrack,
-					comment,&error);
+			/* status = */ 
+                          mb_put_all(verbose,ombio_ptr,
+                                     store_ptr,MB_NO /* Do not insert the following values */,
+                                     kind,
+                                     time_i,time_d,
+                                     navlon,navlat, speed,heading,
+                                     beams_bath, beams_amp, pixels_ss,
+                                     beamflag, bath, amp, bathacrosstrack, bathalongtrack,
+                                     ss,ssacrosstrack, ssalongtrack,
+                                     comment, &error);
 			}
 	
 		/* close the swath file */
-		status = mb_close(verbose, &imbio_ptr, &error);
-		status = mb_close(verbose, &ombio_ptr, &error);
+		/* status = */ mb_close(verbose, &imbio_ptr, &error);
+		/* status = */ mb_close(verbose, &ombio_ptr, &error);
 			
 		/* figure out whether and what to read next */
 		if (read_datalist == MB_YES)
 			{
-			if ((status = mb_datalist_read(verbose,datalist,
+			if ((/* status = */ mb_datalist_read(verbose,datalist,
 				    ifile,&format,&file_weight,&error))
 				    == MB_SUCCESS)
 				read_data = MB_YES;
@@ -247,11 +260,11 @@ int main (int argc, char **argv)
 	
 		/* end loop over files in list */
 		}
+
 	if (read_datalist == MB_YES)
 		mb_datalist_close(verbose,&datalist,&error);
       
-	/* check memory */
-	status = mb_memory_list(verbose,&error);
+	/* status = */ mb_memory_list(verbose,&error);
 }
 
                 

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdbool.h>
 
 /* MBIO include files */
 #include "mb_status.h"
@@ -13,11 +14,6 @@
 
 int main (int argc, char **argv)
 {
-	extern char *optarg;
-	int	errflg = 0;
-	int	c;
-	int	help = 0;
-	int	flag = 0;
 
 	/* MBIO status variables */
 	int	status = MB_SUCCESS;
@@ -41,7 +37,7 @@ int main (int argc, char **argv)
 	double	etime_d;
 	double	speedmin;
 	double	timegap;
-	mb_path	file;
+	mb_path	file="stdin";
 	int	pings_get = 1;
 	int	beams_bath_alloc = 0;
 	int	beams_amp_alloc = 0;
@@ -72,38 +68,58 @@ int main (int argc, char **argv)
 	double	*sslat = NULL;
 	char	comment[MB_COMMENT_MAXLINE];
 	
-	int	done;
+	// int	done;
 	int	read_data;
-         
+        {
+          bool val=false;
+          printf("val=%d\n", val);
+        }
 	/* get current default values */
-	status = mb_defaults(verbose,&format,&pings_get,&lonflip,bounds,
-		btime_i,etime_i,&speedmin,&timegap);
+        if (MB_SUCCESS != mb_defaults(verbose,&format,&pings_get,&lonflip,bounds,
+                                      btime_i,etime_i,&speedmin,&timegap)) {
+          mb_error(verbose,error,&message);
+          fprintf(stderr,"\nMBIO Error returned from function <mb_defaults>:\n%s\n",message);
+          fprintf(stderr,"\nProgram Terminated\n");
+          exit(error);  // Or we could use EXIT_FAILURE
+        }
+	/* status = mb_defaults(verbose,&format,&pings_get,&lonflip,bounds, */
+	/* 	btime_i,etime_i,&speedmin,&timegap); */
 
-        strcpy (file, "stdin");
+        // strcpy (file, "stdin");
 
 	/* process argument list */
+        {
+          extern char *optarg;
+          int	errflg = 0;
+          int	c;
+          // int	help = 0;
+          int	flag = 0;
+
 	  while ((c = getopt(argc, argv, "F:f:I:i:")) != -1)
-	  switch (c)
-		{
-		case 'F':
-		case 'f':
-			sscanf (optarg,"%d", &format);
-			flag++;
-			break;
-		case 'I':
-		case 'i':
-			sscanf (optarg,"%s", read_file);
-			flag++;
-			break;
-		case '?':
-			errflg++;
-		}
+	  switch (c) {
+            case 'F':
+            case 'f':
+              sscanf (optarg,"%d", &format);
+              flag++;
+              break;
+            case 'I':
+            case 'i':
+              sscanf (optarg,"%s", read_file);
+              flag++;
+              break;
+            case '?':
+              errflg++;
+            default:
+              fprintf(stderr, "ERROR: unknown getopt case: %c\n", c);
+            }
+          // TODO: Do something if errflg is true.
+        }
 
 	/* get format if required */
-	if (format == 0)
-		mb_get_format(verbose,read_file,NULL,&format,&error);
+	if (!format) mb_get_format(verbose,read_file,NULL,&format,&error);
 
 	/* determine whether to read one file or a list of files */
+        // TODO: Explain what a negative format means.
 	if (format < 0)
 		read_datalist = MB_YES;
 	
