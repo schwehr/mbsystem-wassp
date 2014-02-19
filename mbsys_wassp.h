@@ -398,23 +398,22 @@ struct mbsys_wassp_unknown1_struct
        };
 
 /* Data system structure */
-struct mbsys_wassp_struct
-	{
-	/* Type of most recently read data record */
-	int		kind;			/* MB-System record ID */
+struct mbsys_wassp_struct {
+  /* Type of most recently read data record */
+  int		kind;			/* MB-System record ID */
 
-	/* MB-System time stamp of most recently read record */
-	double		time_d;
-	int		time_i[7];
+  /* MB-System time stamp of most recently read record */
+  double		time_d;   /* UNIX UTC sec */
+  int		time_i[7];  /* [6] is microseconds */
 
-        /* GENBATHY record */
-        struct mbsys_wassp_genbathy_struct genbathy;
+  /* GENBATHY record */
+  struct mbsys_wassp_genbathy_struct genbathy;
 
-        /* CORBATHY record */
-        struct mbsys_wassp_corbathy_struct corbathy;
+  /* CORBATHY record */
+  struct mbsys_wassp_corbathy_struct corbathy;
 
-        /* RAWSONAR record */
-        struct mbsys_wassp_rawsonar_struct rawsonar;
+  /* RAWSONAR record */
+  struct mbsys_wassp_rawsonar_struct rawsonar;
 
         /* GEN_SENS record */
         struct mbsys_wassp_gen_sens_struct gen_sens;

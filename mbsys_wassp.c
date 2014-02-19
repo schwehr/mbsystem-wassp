@@ -25,6 +25,7 @@
  */
 
 /* standard include files */
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -39,11 +40,13 @@
 
 static char version_id[]="$Id: mbsys_wassp.c 2162 2014-01-25 05:03:15Z caress $";
 
+// TODO(caress): Set input parameters that are not changed to const.
+
 /*--------------------------------------------------------------------*/
 int mbsys_wassp_alloc(int verbose, void *mbio_ptr, void **store_ptr,
 			int *error)
 {
-	char	*function_name = "mbsys_wassp_alloc";
+	const char	*function_name = "mbsys_wassp_alloc";
 	int	status = MB_SUCCESS;
 	struct mb_io_struct *mb_io_ptr;
 	struct mbsys_wassp_struct *store;
@@ -320,16 +323,16 @@ int mbsys_wassp_sonartype(int verbose, void *mbio_ptr, void *store_ptr,
 {
 	char	*function_name = "mbsys_wassp_sonartype";
 	int	status = MB_SUCCESS;
-	struct mb_io_struct *mb_io_ptr;
-	struct mbsys_wassp_struct *store;
-        struct mbsys_wassp_genbathy_struct *genbathy;
-        struct mbsys_wassp_corbathy_struct *corbathy;
-        struct mbsys_wassp_rawsonar_struct *rawsonar;
-        struct mbsys_wassp_gen_sens_struct *gen_sens;
-        struct mbsys_wassp_nvupdate_struct *nvupdate;
-        struct mbsys_wassp_wcd_navi_struct *wcd_navi;
-	struct mbsys_wassp_sys_cfg1_struct *sys_cfg1;
-	struct mbsys_wassp_mcomment_struct *mcomment;
+	// struct mb_io_struct *mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
+	// struct mbsys_wassp_struct *store = (struct mbsys_wassp_struct *) store_ptr;
+        // struct mbsys_wassp_genbathy_struct *genbathy = (struct mbsys_wassp_genbathy_struct *) &(store->genbathy);
+        // struct mbsys_wassp_corbathy_struct *corbathy = (struct mbsys_wassp_corbathy_struct *) &(store->corbathy);
+        // struct mbsys_wassp_rawsonar_struct *rawsonar = (struct mbsys_wassp_rawsonar_struct *) &(store->rawsonar);
+        // struct mbsys_wassp_gen_sens_struct *gen_sens = (struct mbsys_wassp_gen_sens_struct *) &(store->gen_sens);
+        // struct mbsys_wassp_nvupdate_struct *nvupdate = (struct mbsys_wassp_nvupdate_struct *) &(store->nvupdate);
+        // struct mbsys_wassp_wcd_navi_struct *wcd_navi = (struct mbsys_wassp_wcd_navi_struct *) &(store->wcd_navi);
+	// struct mbsys_wassp_sys_cfg1_struct *sys_cfg1 = (struct mbsys_wassp_sys_cfg1_struct *) &(store->sys_cfg1);
+	// struct mbsys_wassp_mcomment_struct *mcomment = (struct mbsys_wassp_mcomment_struct *) &(store->mcomment);
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -342,19 +345,14 @@ int mbsys_wassp_sonartype(int verbose, void *mbio_ptr, void *store_ptr,
 		fprintf(stderr,"dbg2       store_ptr:  %p\n",(void *)store_ptr);
 		}
 
-	/* get mbio descriptor */
-	mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
 
-	/* get data structure pointer */
-	store = (struct mbsys_wassp_struct *) store_ptr;
-        genbathy = (struct mbsys_wassp_genbathy_struct *) &(store->genbathy);
-        corbathy = (struct mbsys_wassp_corbathy_struct *) &(store->corbathy);
-        rawsonar = (struct mbsys_wassp_rawsonar_struct *) &(store->rawsonar);
-        gen_sens = (struct mbsys_wassp_gen_sens_struct *) &(store->gen_sens);
-        nvupdate = (struct mbsys_wassp_nvupdate_struct *) &(store->nvupdate);
-        wcd_navi = (struct mbsys_wassp_wcd_navi_struct *) &(store->wcd_navi);
-        sys_cfg1 = (struct mbsys_wassp_sys_cfg1_struct *) &(store->sys_cfg1);
-        mcomment = (struct mbsys_wassp_mcomment_struct *) &(store->mcomment);
+        // assert(corbathy);
+        // assert(rawsonar);
+        // assert(gen_sens);
+        // assert(nvupdate);
+        // wcd_navi = ;
+        // sys_cfg1 = ;
+        // mcomment = ;
 
 	/* get sonar type */
 	*sonartype = MB_SONARTYPE_MULTIBEAM;
@@ -386,10 +384,10 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 {
 	char	*function_name = "mbsys_wassp_extract";
 	int	status = MB_SUCCESS;
-	struct mb_io_struct *mb_io_ptr;
-	struct mbsys_wassp_struct *store;
-        struct mbsys_wassp_genbathy_struct *genbathy;
-        struct mbsys_wassp_corbathy_struct *corbathy;
+	struct mb_io_struct *mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
+	struct mbsys_wassp_struct *store = (struct mbsys_wassp_struct *) store_ptr;
+        struct mbsys_wassp_genbathy_struct *genbathy = (struct mbsys_wassp_genbathy_struct *) &(store->genbathy);
+        struct mbsys_wassp_corbathy_struct *corbathy = (struct mbsys_wassp_corbathy_struct *) &(store->corbathy);
         struct mbsys_wassp_rawsonar_struct *rawsonar;
         struct mbsys_wassp_gen_sens_struct *gen_sens;
         struct mbsys_wassp_nvupdate_struct *nvupdate;
@@ -397,8 +395,8 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 	struct mbsys_wassp_sys_cfg1_struct *sys_cfg1;
 	struct mbsys_wassp_mcomment_struct *mcomment;
 	double	headingx, headingy;
-	double	dx, dy;
-	int	i, j;
+	// double	dx, dy;
+	// int	i, j;
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -411,13 +409,10 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 		fprintf(stderr,"dbg2       store_ptr:  %p\n",(void *)store_ptr);
 		}
 
-	/* get mbio descriptor */
-	mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
-
 	/* get data structure pointer */
-	store = (struct mbsys_wassp_struct *) store_ptr;
-        genbathy = (struct mbsys_wassp_genbathy_struct *) &(store->genbathy);
-        corbathy = (struct mbsys_wassp_corbathy_struct *) &(store->corbathy);
+	assert(store);
+        assert(genbathy);
+        assert(corbathy);
         rawsonar = (struct mbsys_wassp_rawsonar_struct *) &(store->rawsonar);
         gen_sens = (struct mbsys_wassp_gen_sens_struct *) &(store->gen_sens);
         nvupdate = (struct mbsys_wassp_nvupdate_struct *) &(store->nvupdate);
@@ -432,7 +427,7 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 	if (*kind == MB_DATA_DATA)
 		{
 		/* get time */
-		for (i=0;i<7;i++)
+		for (int i=0;i<7;i++)
 			time_i[i] = store->time_i[i];
 		*time_d = store->time_d;
 
@@ -457,7 +452,7 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 		/* read distance and depth values into storage arrays */
 		*nbath = corbathy->num_beams;
 		*namp = *nbath;
-		for (i=0;i<*nbath;i++)
+		for (int i=0;i<*nbath;i++)
 			{
 			bath[i] = 0.0;
 			beamflag[i] = MB_FLAG_NULL;
@@ -465,9 +460,9 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 			bathalongtrack[i] = 0.0;
 			amp[i] = 0.0;
 			}
-		for (i=0;i<*nbath;i++)
+		for (int i=0;i<*nbath;i++)
 			{
-			j = corbathy->beam_index[i];
+			int j = corbathy->beam_index[i];
 			bath[j] = -corbathy->z[i];
 			beamflag[j] = corbathy->empty[i];
 			bathacrosstrack[j] = headingy * corbathy->x[i] + headingx * (-corbathy->y[i]);
@@ -499,16 +494,16 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 			fprintf(stderr,"dbg4       speed:      %f\n", *speed);
 			fprintf(stderr,"dbg4       heading:    %f\n", *heading);
 			fprintf(stderr,"dbg4       nbath:      %d\n", *nbath);
-			for (i=0;i<*nbath;i++)
+			for (int i=0;i<*nbath;i++)
 			  fprintf(stderr,"dbg4       beam:%d  flag:%3d  bath:%f  acrosstrack:%f  alongtrack:%f\n",
 				i,beamflag[i],bath[i],
 				bathacrosstrack[i],bathalongtrack[i]);
 			fprintf(stderr,"dbg4        namp:     %d\n", *namp);
-			for (i=0;i<*namp;i++)
+			for (int i=0;i<*namp;i++)
 			  fprintf(stderr,"dbg4        beam:%d   amp:%f  acrosstrack:%f  alongtrack:%f\n",
 				i,amp[i],bathacrosstrack[i],bathalongtrack[i]);
 			fprintf(stderr,"dbg4        nss:      %d\n", *nss);
-			for (i=0;i<*nss;i++)
+			for (int i=0;i<*nss;i++)
 			  fprintf(stderr,"dbg4        pixel:%d   ss:%f  acrosstrack:%f  alongtrack:%f\n",
 				i,ss[i],ssacrosstrack[i],ssalongtrack[i]);
 			}
@@ -521,7 +516,7 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 	else if (*kind == MB_DATA_NAV)
 		{
 		/* get time */
-		for (i=0;i<7;i++)
+		for (int i=0;i<7;i++)
 			time_i[i] = store->time_i[i];
 		*time_d = store->time_d;
 
@@ -570,7 +565,7 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 	else if (*kind == MB_DATA_COMMENT)
 		{
 		/* get time */
-		for (i=0;i<7;i++)
+		for (int i=0;i<7;i++)
 			time_i[i] = store->time_i[i];
 		*time_d = store->time_d;
 
@@ -604,7 +599,7 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 	else
 		{
 		/* get time */
-		for (i=0;i<7;i++)
+		for (int i=0;i<7;i++)
 			time_i[i] = store->time_i[i];
 		*time_d = store->time_d;
 
@@ -665,18 +660,18 @@ int mbsys_wassp_extract(int verbose, void *mbio_ptr, void *store_ptr,
 		{
 		fprintf(stderr,"dbg2       nbath:      %d\n",
 			*nbath);
-		for (i=0;i<*nbath;i++)
+		for (int i=0;i<*nbath;i++)
 		  fprintf(stderr,"dbg2       beam:%d  flag:%3d  bath:%f  acrosstrack:%f  alongtrack:%f\n",
 			i,beamflag[i],bath[i],
 			bathacrosstrack[i],bathalongtrack[i]);
 		fprintf(stderr,"dbg2        namp:     %d\n",
 			*namp);
-		for (i=0;i<*namp;i++)
+		for (int i=0;i<*namp;i++)
 		  fprintf(stderr,"dbg2       beam:%d   amp:%f  acrosstrack:%f  alongtrack:%f\n",
 			i,amp[i],bathacrosstrack[i],bathalongtrack[i]);
 		fprintf(stderr,"dbg2        nss:      %d\n",
 			*nss);
-		for (i=0;i<*nss;i++)
+		for (int i=0;i<*nss;i++)
 		  fprintf(stderr,"dbg2        pixel:%d   ss:%f  acrosstrack:%f  alongtrack:%f\n",
 			i,ss[i],ssacrosstrack[i],ssalongtrack[i]);
 		}
@@ -714,8 +709,8 @@ int mbsys_wassp_insert(int verbose, void *mbio_ptr, void *store_ptr,
 	struct mbsys_wassp_sys_cfg1_struct *sys_cfg1;
 	struct mbsys_wassp_mcomment_struct *mcomment;
 	double	headingx, headingy;
-	double	dx, dy;
-	int	i, j;
+	// double	dx, dy;
+	// int	i, j;
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -755,18 +750,18 @@ int mbsys_wassp_insert(int verbose, void *mbio_ptr, void *store_ptr,
 		{
 		fprintf(stderr,"dbg2       nbath:      %d\n",nbath);
 		if (verbose >= 3)
-		 for (i=0;i<nbath;i++)
+		 for (int i=0;i<nbath;i++)
 		  fprintf(stderr,"dbg3       beam:%d  flag:%3d  bath:%f  acrosstrack:%f  alongtrack:%f\n",
 			i,beamflag[i],bath[i],
 			bathacrosstrack[i],bathalongtrack[i]);
 		fprintf(stderr,"dbg2       namp:       %d\n",namp);
 		if (verbose >= 3)
-		 for (i=0;i<namp;i++)
+		 for (int i=0;i<namp;i++)
 		  fprintf(stderr,"dbg3        beam:%d   amp:%f  acrosstrack:%f  alongtrack:%f\n",
 			i,amp[i],bathacrosstrack[i],bathalongtrack[i]);
 		fprintf(stderr,"dbg2        nss:       %d\n",nss);
 		if (verbose >= 3)
-		 for (i=0;i<nss;i++)
+		 for (int i=0;i<nss;i++)
 		  fprintf(stderr,"dbg3        beam:%d   ss:%f  acrosstrack:%f  alongtrack:%f\n",
 			i,ss[i],ssacrosstrack[i],ssalongtrack[i]);
 		}
@@ -792,7 +787,7 @@ int mbsys_wassp_insert(int verbose, void *mbio_ptr, void *store_ptr,
 	if (store->kind == MB_DATA_DATA)
 		{
 		/* get time */
-		for (i=0;i<7;i++)
+		for (int i=0;i<7;i++)
 			store->time_i[i] = time_i[i];
 		store->time_d = time_d;
 
@@ -810,9 +805,9 @@ int mbsys_wassp_insert(int verbose, void *mbio_ptr, void *store_ptr,
 		headingy = cos(heading*DTR);
 
 		/* read distance and depth values into storage arrays */
-		for (i=0;i<corbathy->num_beams;i++)
+		for (int i=0;i<corbathy->num_beams;i++)
 			{
-			j = corbathy->beam_index[i];
+			int j = corbathy->beam_index[i];
 			corbathy->z[i] = -bath[j];
 			corbathy->empty[i] = beamflag[j];
 			corbathy->x[i] = headingy * bathacrosstrack[j] + headingx * bathalongtrack[j];
@@ -827,7 +822,7 @@ int mbsys_wassp_insert(int verbose, void *mbio_ptr, void *store_ptr,
 	else if (store->kind == MB_DATA_NAV)
 		{
 		/* get time */
-		for (i=0;i<7;i++)
+		for (int i=0;i<7;i++)
 			store->time_i[i] = time_i[i];
 		store->time_d = time_d;
 

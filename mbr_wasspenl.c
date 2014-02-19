@@ -28,6 +28,7 @@
  */
 
 /* standard include files */
+#include <assert.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -100,9 +101,12 @@ static char rcs_id[]="$Id: mbr_wasspenl.c 2158 2014-01-18 08:43:11Z caress $";
 /*--------------------------------------------------------------------*/
 int mbr_register_wasspenl(int verbose, void *mbio_ptr, int *error)
 {
-	char	*function_name = "mbr_register_wasspenl";
+	const char* function_name = "mbr_register_wasspenl";
 	int	status = MB_SUCCESS;
-	struct mb_io_struct *mb_io_ptr;
+	struct mb_io_struct *mb_io_ptr = (struct mb_io_struct *)mbio_ptr;
+
+        assert(mbio_ptr);
+        assert(error);
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -112,9 +116,6 @@ int mbr_register_wasspenl(int verbose, void *mbio_ptr, int *error)
 		fprintf(stderr,"dbg2  Input arguments:\n");
 		fprintf(stderr,"dbg2       verbose:    %d\n",verbose);
 		}
-
-	/* get mb_io_ptr */
-	mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
 
 	/* set format info parameters */
 	status = mbr_info_wasspenl(verbose,
@@ -246,8 +247,28 @@ int mbr_info_wasspenl(int verbose,
 			double *beamwidth_ltrack,
 			int *error)
 {
-	char	*function_name = "mbr_info_wasspenl";
+	const char	*function_name = "mbr_info_wasspenl";
 	int	status = MB_SUCCESS;
+
+        assert(system);
+        assert(beams_bath_max);
+        assert(beams_amp_max);
+        assert(pixels_ss_max);
+        assert(format_name);
+        assert(system_name);
+        assert(format_description);
+        assert(numfile);
+        assert(filetype);
+        assert(variable_beams);
+        assert(traveltime);
+        assert(beam_flagging);
+        assert(nav_source);
+        assert(heading_source);
+        assert(vru_source);
+        assert(svp_source);
+        assert(beamwidth_xtrack);
+        assert(beamwidth_ltrack);
+        assert(error);
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -267,7 +288,12 @@ int mbr_info_wasspenl(int verbose,
 	*pixels_ss_max = MBSYS_WASSP_MAX_PIXELS;
 	strncpy(format_name, "WASSPENL", MB_NAME_LENGTH);
 	strncpy(system_name, "WASSP", MB_NAME_LENGTH);
-	strncpy(format_description, "Format name:          MBF_WASSPENL\nInformal Description: WASSP Multibeam Vendor Format\nAttributes:           WASSP multibeams, \n                      bathymetry and amplitude,\n		      122 or 244 beams, binary, Electronic Navigation Ltd.\n", MB_DESCRIPTION_LENGTH);
+	strncpy(format_description, "Format name:          MBF_WASSPENL\n"
+                "Informal Description: WASSP Multibeam Vendor Format\n"
+                "Attributes:           WASSP multibeams, \n"
+                "                      bathymetry and amplitude,\n"
+                "		      122 or 244 beams, binary, Electronic Navigation Ltd.\n",
+                MB_DESCRIPTION_LENGTH);
 	*numfile = 1;
 	*filetype = MB_FILETYPE_SINGLE;
 	*variable_beams = MB_YES;
@@ -316,10 +342,13 @@ int mbr_alm_wasspenl(int verbose, void *mbio_ptr, int *error)
 {
 	char	*function_name = "mbr_alm_wasspenl";
 	int	status = MB_SUCCESS;
-	struct mb_io_struct *mb_io_ptr;
+	struct mb_io_struct *mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
 	char	**bufferptr;
 	char	*buffer;
 	int	*bufferalloc;
+
+        assert(mbio_ptr);
+        assert(error);
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -330,12 +359,6 @@ int mbr_alm_wasspenl(int verbose, void *mbio_ptr, int *error)
 		fprintf(stderr,"dbg2       verbose:    %d\n",verbose);
 		fprintf(stderr,"dbg2       mbio_ptr:   %p\n",(void *)mbio_ptr);
 		}
-
-	/* get pointer to mbio descriptor */
-	mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
-
-	/* set initial status */
-	status = MB_SUCCESS;
 
 	/* allocate memory for data structure */
 	mb_io_ptr->structure_size = 0;
@@ -522,28 +545,30 @@ int mbr_wt_wasspenl(int verbose, void *mbio_ptr, void *store_ptr, int *error)
 	return(status);
 }
 /*--------------------------------------------------------------------*/
+
+/* TODO(caress): There is a byte order reading issue in this function found during the first day of the workshop. */
 int mbr_wasspenl_rd_data(int verbose, void *mbio_ptr, void *store_ptr, int *error)
 {
-	char	*function_name = "mbr_wasspenl_rd_data";
+	const char	*function_name = "mbr_wasspenl_rd_data";
 	int	status = MB_SUCCESS;
-	struct mb_io_struct *mb_io_ptr;
-	struct mbsys_wassp_struct *store;
-        struct mbsys_wassp_genbathy_struct *genbathy;
-        struct mbsys_wassp_corbathy_struct *corbathy;
-        struct mbsys_wassp_rawsonar_struct *rawsonar;
-        struct mbsys_wassp_gen_sens_struct *gen_sens;
-        struct mbsys_wassp_nvupdate_struct *nvupdate;
-        struct mbsys_wassp_wcd_navi_struct *wcd_navi;
-	struct mbsys_wassp_sys_cfg1_struct *sys_cfg1;
-	struct mbsys_wassp_mcomment_struct *mcomment;
-	char	**bufferptr;
-	char	*buffer;
-	int	*bufferalloc;
-	unsigned int *synctest;
+	struct mb_io_struct *mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
+	struct mbsys_wassp_struct *store = (struct mbsys_wassp_struct *) store_ptr;
+        struct mbsys_wassp_genbathy_struct *genbathy = (struct mbsys_wassp_genbathy_struct *) &(store->genbathy);
+        struct mbsys_wassp_corbathy_struct *corbathy = (struct mbsys_wassp_corbathy_struct *) &(store->corbathy);
+        // struct mbsys_wassp_rawsonar_struct *rawsonar = (struct mbsys_wassp_rawsonar_struct *) &(store->rawsonar);
+        // struct mbsys_wassp_gen_sens_struct *gen_sens = (struct mbsys_wassp_gen_sens_struct *) &(store->gen_sens);
+        // struct mbsys_wassp_nvupdate_struct *nvupdate = (struct mbsys_wassp_nvupdate_struct *) &(store->nvupdate);
+        // struct mbsys_wassp_wcd_navi_struct *wcd_navi = (struct mbsys_wassp_wcd_navi_struct *) &(store->wcd_navi);
+	// struct mbsys_wassp_sys_cfg1_struct *sys_cfg1 = (struct mbsys_wassp_sys_cfg1_struct *) &(store->sys_cfg1);
+	// struct mbsys_wassp_mcomment_struct *mcomment = (struct mbsys_wassp_mcomment_struct *) &(store->mcomment);
+	char	**bufferptr = (char **) &mb_io_ptr->saveptr1;
+	char	*buffer = (char *) *bufferptr;
+	int	*bufferalloc = (int *) &mb_io_ptr->save6;
+	unsigned int *synctest = (unsigned int *) buffer;
 	char	recordid[12];
 	size_t	read_len;
 	int	skip;
-	unsigned int *record_size;
+	unsigned int *record_size = (unsigned int *)&buffer[4];
 	int	done;
 	int	i;
 
@@ -557,26 +582,6 @@ int mbr_wasspenl_rd_data(int verbose, void *mbio_ptr, void *store_ptr, int *erro
 		fprintf(stderr,"dbg2       mbio_ptr:   %p\n",(void *)mbio_ptr);
 		fprintf(stderr,"dbg2       store_ptr:  %p\n",(void *)store_ptr);
 		}
-
-	/* get pointer to mbio descriptor */
-	mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
-
-	/* get pointer to raw data structure */
-	store = (struct mbsys_wassp_struct *) store_ptr;
-        genbathy = (struct mbsys_wassp_genbathy_struct *) &(store->genbathy);
-        corbathy = (struct mbsys_wassp_corbathy_struct *) &(store->corbathy);
-        rawsonar = (struct mbsys_wassp_rawsonar_struct *) &(store->rawsonar);
-        gen_sens = (struct mbsys_wassp_gen_sens_struct *) &(store->gen_sens);
-        nvupdate = (struct mbsys_wassp_nvupdate_struct *) &(store->nvupdate);
-        wcd_navi = (struct mbsys_wassp_wcd_navi_struct *) &(store->wcd_navi);
-        sys_cfg1 = (struct mbsys_wassp_sys_cfg1_struct *) &(store->sys_cfg1);
-        mcomment = (struct mbsys_wassp_mcomment_struct *) &(store->mcomment);
-
-	bufferptr = (char **) &mb_io_ptr->saveptr1;
-	buffer = (char *) *bufferptr;
-	bufferalloc = (int *) &mb_io_ptr->save6;
-	synctest = (unsigned int *) buffer;
-	record_size = (unsigned int *)&buffer[4];
 
 	/* set file position */
 	mb_io_ptr->file_pos = mb_io_ptr->file_bytes;
@@ -609,24 +614,24 @@ int mbr_wasspenl_rd_data(int verbose, void *mbio_ptr, void *store_ptr, int *erro
 		memcpy((void *)recordid, (void *)&buffer[8], (size_t)8);
 		recordid[9] = '\0';
 #ifdef MBR_WASSPENLDEBUG
-	fprintf(stderr,"Found sync - skip:%d record:%s\n", skip,recordid);
+                fprintf(stderr, "Found sync - skip:%d record:%s\n", skip,recordid);
 #endif
 
 		/* report problem */
 		if (skip > 0 && verbose >= 0)
 		    	{
 			fprintf(stderr,
-"\nThe MBF_WASSPENL module skipped data between identified\n\
-data records. Something is broken, most probably the data...\n\
-However, the data may include a data record type that we\n\
-haven't seen yet, or there could be an error in the code.\n\
-If skipped data are reported multiple times, \n\
-we recommend you send a data sample and problem \n\
-description to the MB-System team \n\
-(caress@mbari.org and dale@ldeo.columbia.edu)\n\
-Have a nice day...\n");
+                                "\nThe MBF_WASSPENL module skipped data between identified\n\n"
+                                "data records. Something is broken, most probably the data...\n\n"
+                                "However, the data may include a data record type that we\n\n"
+                                "haven't seen yet, or there could be an error in the code.\n\n"
+                                "If skipped data are reported multiple times, \n\n"
+                                "we recommend you send a data sample and problem \n\n"
+                                "description to the MB-System team \n\n"
+                                "(caress@mbari.org and dale@ldeo.columbia.edu)\n\n"
+                                "Have a nice day...\n");
 			fprintf(stderr, "MBF_WASSPENL skipped %d bytes before record %s\n",
-					skip, recordid);
+                                skip, recordid);
 		    }
 
 		/* allocate memory to read rest of record if necessary */
@@ -766,21 +771,29 @@ Have a nice day...\n");
 		fprintf(stderr,"dbg2       status:  %d\n",status);
 		}
 
-	/* return status */
 	return(status);
 }
+
 /*--------------------------------------------------------------------*/
 int mbr_wasspenl_wr_data(int verbose, void *mbio_ptr, void *store_ptr, int *error)
 {
 	char	*function_name = "mbr_wasspenl_wr_data";
 	int	status = MB_SUCCESS;
-	struct mb_io_struct *mb_io_ptr;
-	struct mbsys_wassp_struct *store;
-	char	**bufferptr;
-	char	*buffer;
-	int	*bufferalloc;
+	struct mb_io_struct *mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
+	struct mbsys_wassp_struct *store = (struct mbsys_wassp_struct *) store_ptr;
+	char	**bufferptr = (char **) &mb_io_ptr->saveptr1;
+	char	*buffer = (char *) *bufferptr;
+	int	*bufferalloc = (int *) &mb_io_ptr->save6;
 	int	size;
 	size_t	write_len;
+
+        assert(mbio_ptr);
+        assert(store_ptr);
+        assert(error);
+        assert(store);
+        assert(bufferptr);
+        assert(buffer);
+        assert(bufferalloc);
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -792,17 +805,6 @@ int mbr_wasspenl_wr_data(int verbose, void *mbio_ptr, void *store_ptr, int *erro
 		fprintf(stderr,"dbg2       mbio_ptr:   %p\n",(void *)mbio_ptr);
 		fprintf(stderr,"dbg2       store_ptr:  %p\n",(void *)store_ptr);
 		}
-
-	/* get pointer to mbio descriptor */
-	mb_io_ptr = (struct mb_io_struct *) mbio_ptr;
-
-	/* get pointer to raw data structure */
-	store = (struct mbsys_wassp_struct *) store_ptr;
-
-	/* get saved values */
-	bufferptr = (char **) &mb_io_ptr->saveptr1;
-	buffer = (char *) *bufferptr;
-	bufferalloc = (int *) &mb_io_ptr->save6;
 
 	/* write the current data record */
 	
@@ -885,7 +887,7 @@ int mbr_wasspenl_wr_data(int verbose, void *mbio_ptr, void *store_ptr, int *erro
 
 #ifdef MBR_WASSPENLDEBUG
 	fprintf(stderr,"WASSPENL DATA WRITTEN: type:%d status:%d error:%d\n\n",
-	store->kind, status, *error);
+                store->kind, status, *error);
 #endif
 
 	/* print output debug statements */
@@ -906,10 +908,14 @@ int mbr_wasspenl_rd_genbathy(int verbose, char *buffer, void *store_ptr, int *er
 {
 	char	*function_name = "mbr_wasspenl_rd_genbathy";
 	int	status = MB_SUCCESS;
-	struct mbsys_wassp_struct *store;
-        struct mbsys_wassp_genbathy_struct *genbathy;
-	int	index;
-	int	i;
+	struct mbsys_wassp_struct *store = (struct mbsys_wassp_struct *) store_ptr;
+        struct mbsys_wassp_genbathy_struct *genbathy = &(store->genbathy);
+	int	index = 16;  /* Data for a packat starts after the syncpattern and size */
+	// int	i;
+
+        assert(buffer);
+        assert(store_ptr);
+        assert(error);
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -922,40 +928,35 @@ int mbr_wasspenl_rd_genbathy(int verbose, char *buffer, void *store_ptr, int *er
 		fprintf(stderr,"dbg2       store_ptr:  %p\n",(void *)store_ptr);
 		}
 
-	/* get pointer to raw data structure */
-	store = (struct mbsys_wassp_struct *) store_ptr;
-	genbathy = &(store->genbathy);
-
 	/* extract the data */
-	index = 16;
-	mb_get_binary_int(MB_YES, &buffer[index], &(genbathy->version)); index += 4;
-	mb_get_binary_double(MB_YES, &buffer[index], &(genbathy->msec)); index += 8;
+        const int endian = MB_YES; // Little endian.
+	mb_get_binary_int(endian, &buffer[index], &(genbathy->version)); index += 4;
+	mb_get_binary_double(endian, &buffer[index], &(genbathy->msec)); index += 8;
 	genbathy->day = buffer[index]; index++;
 	genbathy->month = buffer[index]; index++;
-	mb_get_binary_short(MB_YES, &buffer[index], &(genbathy->year)); index += 2;
-	mb_get_binary_int(MB_YES, &buffer[index], &(genbathy->ping_number)); index += 4;
-	mb_get_binary_int(MB_YES, &buffer[index], &(genbathy->sonar_model)); index += 4;
-	mb_get_binary_long(MB_YES, &buffer[index], &(genbathy->transducer_serial_number)); index += 8;
-	mb_get_binary_int(MB_YES, &buffer[index], &(genbathy->number_beams)); index += 4;
-	mb_get_binary_int(MB_YES, &buffer[index], &(genbathy->modeflags)); index += 4;
-	mb_get_binary_float(MB_YES, &buffer[index], &(genbathy->sampling_frequency)); index += 4;
-	mb_get_binary_float(MB_YES, &buffer[index], &(genbathy->acoustic_frequency)); index += 4;
-	mb_get_binary_float(MB_YES, &buffer[index], &(genbathy->tx_power)); index += 4;
-	mb_get_binary_float(MB_YES, &buffer[index], &(genbathy->pulse_width)); index += 4;
-	mb_get_binary_float(MB_YES, &buffer[index], &(genbathy->absorption_loss)); index += 4;
-	mb_get_binary_float(MB_YES, &buffer[index], &(genbathy->spreading_loss)); index += 4;
-	mb_get_binary_int(MB_YES, &buffer[index], &(genbathy->sample_type)); index += 4;
-	mb_get_binary_float(MB_YES, &buffer[index], &(genbathy->sound_velocity)); index += 4;
-	for (i=0;i<genbathy->number_beams;i++)
+	mb_get_binary_short(endian, &buffer[index], &(genbathy->year)); index += 2;
+	mb_get_binary_int(endian, &buffer[index], &(genbathy->ping_number)); index += 4;
+	mb_get_binary_int(endian, &buffer[index], &(genbathy->sonar_model)); index += 4;
+	mb_get_binary_long(endian, &buffer[index], &(genbathy->transducer_serial_number)); index += 8;
+	mb_get_binary_int(endian, &buffer[index], &(genbathy->number_beams)); index += 4;
+	mb_get_binary_int(endian, &buffer[index], &(genbathy->modeflags)); index += 4;
+	mb_get_binary_float(endian, &buffer[index], &(genbathy->sampling_frequency)); index += 4;
+	mb_get_binary_float(endian, &buffer[index], &(genbathy->acoustic_frequency)); index += 4;
+	mb_get_binary_float(endian, &buffer[index], &(genbathy->tx_power)); index += 4;
+	mb_get_binary_float(endian, &buffer[index], &(genbathy->pulse_width)); index += 4;
+	mb_get_binary_float(endian, &buffer[index], &(genbathy->absorption_loss)); index += 4;
+	mb_get_binary_float(endian, &buffer[index], &(genbathy->spreading_loss)); index += 4;
+	mb_get_binary_int(endian, &buffer[index], &(genbathy->sample_type)); index += 4;
+	mb_get_binary_float(endian, &buffer[index], &(genbathy->sound_velocity)); index += 4;
+	for (int i=0;i<genbathy->number_beams;i++)
 		{
-		mb_get_binary_float(MB_YES, &buffer[index], &(genbathy->detection_point[i])); index += 4;
-		mb_get_binary_float(MB_YES, &buffer[index], &(genbathy->rx_angle[i])); index += 4;
-		mb_get_binary_int(MB_YES, &buffer[index], &(genbathy->flags[i])); index += 4;
-		mb_get_binary_float(MB_YES, &buffer[index], &(genbathy->backscatter[i])); index += 4;
+		mb_get_binary_float(endian, &buffer[index], &(genbathy->detection_point[i])); index += 4;
+		mb_get_binary_float(endian, &buffer[index], &(genbathy->rx_angle[i])); index += 4;
+		mb_get_binary_int(endian, &buffer[index], &(genbathy->flags[i])); index += 4;
+		mb_get_binary_float(endian, &buffer[index], &(genbathy->backscatter[i])); index += 4;
 		}
-	mb_get_binary_int(MB_YES, &buffer[index], &(genbathy->checksum)); index += 4;
+	mb_get_binary_int(endian, &buffer[index], &(genbathy->checksum)); index += 4;
 
-	/* set kind */
 	if (status == MB_SUCCESS)
 		{
 		/* set kind */
@@ -1003,7 +1004,7 @@ int mbr_wasspenl_rd_genbathy(int verbose, char *buffer, void *store_ptr, int *er
 		fprintf(stderr,"dbg5       genbathy->spreading_loss:             %f\n",genbathy->spreading_loss);
 		fprintf(stderr,"dbg5       genbathy->sample_type:                %u\n",genbathy->sample_type);
 		fprintf(stderr,"dbg5       genbathy->sound_velocity:             %f\n",genbathy->sound_velocity);
-		for (i=0;i<genbathy->number_beams;i++)
+		for (int i=0;i<genbathy->number_beams;i++)
 			{
 			fprintf(stderr,"dbg5       genbathy->detection_point[%3d]:       %f\n",i,genbathy->detection_point[i]);
 			fprintf(stderr,"dbg5       genbathy->rx_angle[%3d]:              %f\n",i,genbathy->rx_angle[i]);	
@@ -1023,18 +1024,25 @@ int mbr_wasspenl_rd_genbathy(int verbose, char *buffer, void *store_ptr, int *er
 		fprintf(stderr,"dbg2       status:  %d\n",status);
 		}
 
-	/* return status */
 	return(status);
 }
+
 /*--------------------------------------------------------------------*/
 int mbr_wasspenl_rd_corbathy(int verbose, char *buffer, void *store_ptr, int *error)
 {
-	char	*function_name = "mbr_wasspenl_rd_corbathy";
+	const char	*function_name = "mbr_wasspenl_rd_corbathy";
 	int	status = MB_SUCCESS;
-	struct mbsys_wassp_struct *store;
-        struct mbsys_wassp_corbathy_struct *corbathy;
-	int	index;
-	int	i;
+	struct mbsys_wassp_struct *store = (struct mbsys_wassp_struct *) store_ptr;
+        struct mbsys_wassp_corbathy_struct *corbathy = &(store->corbathy);
+	int	index = 16;
+	// int	i;
+
+        assert(buffer);
+        assert(store_ptr);
+        assert(error);
+        // TODO(caress): Yes, this is correct, right?
+        assert(store_ptr);
+        assert(corbathy);
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -1047,12 +1055,8 @@ int mbr_wasspenl_rd_corbathy(int verbose, char *buffer, void *store_ptr, int *er
 		fprintf(stderr,"dbg2       store_ptr:  %p\n",(void *)store_ptr);
 		}
 
-	/* get pointer to raw data structure */
-	store = (struct mbsys_wassp_struct *) store_ptr;
-	corbathy = &(store->corbathy);
-
 	/* extract the data */
-	index = 16;
+        // TODO: do the same endian things as before.
 	mb_get_binary_int(MB_YES, &buffer[index], &(corbathy->version)); index += 4;
 	mb_get_binary_double(MB_YES, &buffer[index], &(corbathy->msec)); index += 8;
 	mb_get_binary_int(MB_YES, &buffer[index], &(corbathy->num_beams)); index += 4;
@@ -1064,11 +1068,11 @@ int mbr_wasspenl_rd_corbathy(int verbose, char *buffer, void *store_ptr, int *er
 	mb_get_binary_float(MB_YES, &buffer[index], &(corbathy->pitch)); index += 4;
 	mb_get_binary_float(MB_YES, &buffer[index], &(corbathy->heave)); index += 4;
 	mb_get_binary_int(MB_YES, &buffer[index], &(corbathy->sample_type)); index += 4;
-	for (i=0;i<6;i++)
+	for (int i=0;i<6;i++)
 		{
 		mb_get_binary_int(MB_YES, &buffer[index], &(corbathy->spare[i])); index += 4;
 		}
-	for (i=0;i<corbathy->num_beams;i++)
+	for (int i=0;i<corbathy->num_beams;i++)
 		{
 		mb_get_binary_int(MB_YES, &buffer[index], &(corbathy->beam_index[i])); index += 4;
 		mb_get_binary_float(MB_YES, &buffer[index], &(corbathy->x[i])); index += 4;
@@ -1086,14 +1090,12 @@ int mbr_wasspenl_rd_corbathy(int verbose, char *buffer, void *store_ptr, int *er
 
 	/* set kind */
 	if (status == MB_SUCCESS)
-		{
-		/* set kind */
 		store->kind = MB_DATA_DATA;
-		}
 	else
-		{
 		store->kind = MB_DATA_NONE;
-		}
+
+        // Alternative more compact verions of the above:
+        // store->kind = (status==MB_SUCCESS) ? MB_DATA_DATA : MB_DATA_NONE;
 
 	/* print debug statements */
 	if (verbose >= 5)
@@ -1110,11 +1112,11 @@ int mbr_wasspenl_rd_corbathy(int verbose, char *buffer, void *store_ptr, int *er
 		fprintf(stderr,"dbg5       corbathy->pitch:                      %f\n",corbathy->pitch);
 		fprintf(stderr,"dbg5       corbathy->heave:                      %f\n",corbathy->heave);
 		fprintf(stderr,"dbg5       corbathy->sample_type:                %u\n",corbathy->sample_type);
-		for (i=0;i<6;i++)
+		for (int i=0;i<6;i++)
 			{
 			fprintf(stderr,"dbg5       corbathy->spare[%3d]:                 %u\n",i,corbathy->spare[i]);	
 			}
-		for (i=0;i<corbathy->num_beams;i++)
+		for (int i=0;i<corbathy->num_beams;i++)
 			{
 			fprintf(stderr,"dbg5       corbathy->beam_index[%3d]:            %u\n",i,corbathy->beam_index[i]);	
 			fprintf(stderr,"dbg5       corbathy->x[%3d]:                     %f\n",i,corbathy->x[i]);
@@ -1141,7 +1143,6 @@ int mbr_wasspenl_rd_corbathy(int verbose, char *buffer, void *store_ptr, int *er
 		fprintf(stderr,"dbg2       status:  %d\n",status);
 		}
 
-	/* return status */
 	return(status);
 }
 /*--------------------------------------------------------------------*/
@@ -1739,13 +1740,13 @@ int mbr_wasspenl_rd_unknown1(int verbose, char *buffer, void *store_ptr, int *er
 /*--------------------------------------------------------------------*/
 int mbr_wasspenl_wr_genbathy(int verbose, int *bufferalloc, char **bufferptr, void *store_ptr, int *size, int *error)
 {
-	char	*function_name = "mbr_wasspenl_wr_genbathy";
+	const char	*function_name = "mbr_wasspenl_wr_genbathy";
 	int	status = MB_SUCCESS;
-	struct mbsys_wassp_struct *store;
-        struct mbsys_wassp_genbathy_struct *genbathy;
+	struct mbsys_wassp_struct *store = (struct mbsys_wassp_struct *) store_ptr;
+        struct mbsys_wassp_genbathy_struct *genbathy = &(store->genbathy);
 	char	*buffer;
 	int	index;
-	int	i;
+	// int	i;
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -1758,10 +1759,6 @@ int mbr_wasspenl_wr_genbathy(int verbose, int *bufferalloc, char **bufferptr, vo
 		fprintf(stderr,"dbg2       bufferptr:  %p\n",(void *)bufferptr);
 		fprintf(stderr,"dbg2       store_ptr:  %p\n",(void *)store_ptr);
 		}
-
-	/* get pointer to raw data structure */
-	store = (struct mbsys_wassp_struct *) store_ptr;
-	genbathy = &(store->genbathy);
 
 	/* print debug statements */
 	if (verbose >= 5)
@@ -1785,7 +1782,7 @@ int mbr_wasspenl_wr_genbathy(int verbose, int *bufferalloc, char **bufferptr, vo
 		fprintf(stderr,"dbg5       genbathy->spreading_loss:             %f\n",genbathy->spreading_loss);
 		fprintf(stderr,"dbg5       genbathy->sample_type:                %u\n",genbathy->sample_type);
 		fprintf(stderr,"dbg5       genbathy->sound_velocity:             %f\n",genbathy->sound_velocity);
-		for (i=0;i<genbathy->number_beams;i++)
+		for (int i=0;i<genbathy->number_beams;i++)
 			{
 			fprintf(stderr,"dbg5       genbathy->detection_point[%3d]:       %f\n",i,genbathy->detection_point[i]);
 			fprintf(stderr,"dbg5       genbathy->rx_angle[%3d]:              %f\n",i,genbathy->rx_angle[i]);	
@@ -1838,7 +1835,7 @@ int mbr_wasspenl_wr_genbathy(int verbose, int *bufferalloc, char **bufferptr, vo
 		mb_put_binary_float(MB_YES, genbathy->spreading_loss, &buffer[index]); index += 4;
 		mb_put_binary_int(MB_YES, genbathy->sample_type, &buffer[index]); index += 4;
 		mb_put_binary_float(MB_YES, genbathy->sound_velocity, &buffer[index]); index += 4;
-		for (i=0;i<genbathy->number_beams;i++)
+		for (int i=0;i<genbathy->number_beams;i++)
 			{
 			mb_put_binary_float(MB_YES, genbathy->detection_point[i], &buffer[index]); index += 4;
 			mb_put_binary_float(MB_YES, genbathy->rx_angle[i], &buffer[index]); index += 4;
@@ -1848,7 +1845,7 @@ int mbr_wasspenl_wr_genbathy(int verbose, int *bufferalloc, char **bufferptr, vo
 
 		/* now add the checksum */
 		genbathy->checksum = 0;
-		for (i=0;i<index;i++)
+		for (int i=0;i<index;i++)
 			genbathy->checksum += (unsigned char) buffer[i];
 		mb_put_binary_int(MB_YES, genbathy->checksum, &buffer[index]); index += 4;
 		}
@@ -1874,8 +1871,8 @@ int mbr_wasspenl_wr_corbathy(int verbose, int *bufferalloc, char **bufferptr, vo
 	struct mbsys_wassp_struct *store;
         struct mbsys_wassp_corbathy_struct *corbathy;
 	char	*buffer;
-	int	index;
-	int	i;
+	// int	index;
+	// int	i;
 
 	/* print input debug statements */
 	if (verbose >= 2)
@@ -1908,11 +1905,11 @@ int mbr_wasspenl_wr_corbathy(int verbose, int *bufferalloc, char **bufferptr, vo
 		fprintf(stderr,"dbg5       corbathy->pitch:                      %f\n",corbathy->pitch);
 		fprintf(stderr,"dbg5       corbathy->heave:                      %f\n",corbathy->heave);
 		fprintf(stderr,"dbg5       corbathy->sample_type:                %u\n",corbathy->sample_type);
-		for (i=0;i<6;i++)
+		for (int i=0;i<6;i++)
 			{
 			fprintf(stderr,"dbg5       corbathy->spare[%3d]:                 %u\n",i,corbathy->spare[i]);	
 			}
-		for (i=0;i<corbathy->num_beams;i++)
+		for (int i=0;i<corbathy->num_beams;i++)
 			{
 			fprintf(stderr,"dbg5       corbathy->beam_index[%3d]:            %u\n",i,corbathy->beam_index[i]);	
 			fprintf(stderr,"dbg5       corbathy->x[%3d]:                     %f\n",i,corbathy->x[i]);
@@ -1950,7 +1947,7 @@ int mbr_wasspenl_wr_corbathy(int verbose, int *bufferalloc, char **bufferptr, vo
 		buffer = (char *) *bufferptr;
 
 		/* insert the data */
-		index = 0;
+		int index = 0;
 		mb_put_binary_int(MB_YES, MBSYS_WASSP_SYNC, &buffer[index]); index += 4;
 		mb_put_binary_int(MB_YES, *size, &buffer[index]); index += 4;
 		strncpy(&buffer[index], "CORBATHY", 8); index += 8;
@@ -1965,11 +1962,11 @@ int mbr_wasspenl_wr_corbathy(int verbose, int *bufferalloc, char **bufferptr, vo
 		mb_put_binary_float(MB_YES, corbathy->pitch, &buffer[index]); index += 4;
 		mb_put_binary_float(MB_YES, corbathy->heave, &buffer[index]); index += 4;
 		mb_put_binary_int(MB_YES, corbathy->sample_type, &buffer[index]); index += 4;
-		for (i=0;i<6;i++)
+		for (int i=0;i<6;i++)
 			{
 			mb_put_binary_int(MB_YES, corbathy->spare[i], &buffer[index]); index += 4;
 			}
-		for (i=0;i<corbathy->num_beams;i++)
+		for (int i=0;i<corbathy->num_beams;i++)
 			{
 			mb_put_binary_int(MB_YES, corbathy->beam_index[i], &buffer[index]); index += 4;
 			mb_put_binary_float(MB_YES, corbathy->x[i], &buffer[index]); index += 4;
@@ -1986,7 +1983,7 @@ int mbr_wasspenl_wr_corbathy(int verbose, int *bufferalloc, char **bufferptr, vo
 
 		/* now add the checksum */
 		corbathy->checksum = 0;
-		for (i=0;i<index;i++)
+		for (int i=0;i<index;i++)
 			corbathy->checksum += (unsigned char) buffer[i];
 		mb_put_binary_int(MB_YES, corbathy->checksum, &buffer[index]); index += 4;
 		}
